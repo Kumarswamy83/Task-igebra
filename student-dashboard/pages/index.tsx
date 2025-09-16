@@ -28,7 +28,7 @@ export default function Home() {
       .then((json) => {
         setData(json.students);
         if (json.students.length > 0) {
-          setSelectedStudent(json.students[0]); // ✅ default to first student
+          setSelectedStudent(json.students[0]);
         }
       });
   }, []);
@@ -75,10 +75,12 @@ export default function Home() {
         <div style={{ marginBottom: "20px" }}>
           <p><strong>Total Students:</strong> {overview.total}</p>
           <p><strong>Average Score:</strong> {overview.avgScore}</p>
-          <p><strong>Avg Comprehension:</strong> {overview.avgComprehension}, 
-             <strong> Attention:</strong> {overview.avgAttention}, 
-             <strong> Focus:</strong> {overview.avgFocus}, 
-             <strong> Retention:</strong> {overview.avgRetention}</p>
+          <p>
+            <strong>Avg Comprehension:</strong> {overview.avgComprehension}, 
+            <strong> Attention:</strong> {overview.avgAttention}, 
+            <strong> Focus:</strong> {overview.avgFocus}, 
+            <strong> Retention:</strong> {overview.avgRetention}
+          </p>
         </div>
       )}
 
@@ -108,17 +110,28 @@ export default function Home() {
 
           <h2>Student Profile Radar Chart</h2>
           {selectedStudent && (
-            <RadarChart outerRadius={100} width={400} height={300} data={[
-              { skill: "Comprehension", value: selectedStudent.comprehension },
-              { skill: "Attention", value: selectedStudent.attention },
-              { skill: "Focus", value: selectedStudent.focus },
-              { skill: "Retention", value: selectedStudent.retention },
-              { skill: "Assessment Score", value: selectedStudent.assessment_score },
-            ]}>
+            <RadarChart
+              outerRadius={100}
+              width={400}
+              height={300}
+              data={[
+                { skill: "Comprehension", value: selectedStudent.comprehension },
+                { skill: "Attention", value: selectedStudent.attention },
+                { skill: "Focus", value: selectedStudent.focus },
+                { skill: "Retention", value: selectedStudent.retention },
+                { skill: "Assessment Score", value: selectedStudent.assessment_score },
+              ]}
+            >
               <PolarGrid />
               <PolarAngleAxis dataKey="skill" />
               <PolarRadiusAxis />
-              <Radar name={selectedStudent.name} dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+              <Radar
+                name={selectedStudent.name}
+                dataKey="value"
+                stroke="#8884d8"
+                fill="#8884d8"
+                fillOpacity={0.6}
+              />
               <Legend />
             </RadarChart>
           )}
@@ -126,7 +139,7 @@ export default function Home() {
         </>
       )}
 
-      {/* Global Filter for table */}
+      {/* Global Filter */}
       <input
         value={state.globalFilter || ""}
         onChange={(e) => setGlobalFilter(e.target.value)}
@@ -138,9 +151,9 @@ export default function Home() {
       <table {...getTableProps()} border={1} cellPadding={5} style={{ marginBottom: "20px", borderCollapse: "collapse" }}>
         <thead>
           {headerGroups.map(headerGroup => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
+            <tr key={headerGroup.id} {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map(column => (
-                <th {...column.getHeaderProps(column.getSortByToggleProps())}>
+                <th key={column.id} {...column.getHeaderProps(column.getSortByToggleProps())}>
                   {column.render("Header")}
                   <span>{column.isSorted ? (column.isSortedDesc ? " 🔽" : " 🔼") : ""}</span>
                 </th>
@@ -152,12 +165,12 @@ export default function Home() {
           {rows.map(row => {
             prepareRow(row);
             return (
-              <tr {...row.getRowProps()} onClick={() => setSelectedStudent(row.original)} style={{ cursor: "pointer" }}>
+              <tr key={row.id} {...row.getRowProps()} onClick={() => setSelectedStudent(row.original)} style={{ cursor: "pointer" }}>
                 {row.cells.map(cell => (
-                  <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
+                  <td key={cell.column.id} {...cell.getCellProps()}>{cell.render("Cell")}</td>
                 ))}
               </tr>
-            )
+            );
           })}
         </tbody>
       </table>
