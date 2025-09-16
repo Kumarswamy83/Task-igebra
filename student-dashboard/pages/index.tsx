@@ -4,8 +4,9 @@ import {
   ScatterChart, Scatter, CartesianGrid,
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from "recharts";
-import { useTable, useGlobalFilter, useSortBy } from "react-table";
+import { useTable, useGlobalFilter, useSortBy, Column } from "react-table";
 
+// Student interface
 interface Student {
   student_id: number;
   name: string;
@@ -24,16 +25,13 @@ export default function Home() {
 
   useEffect(() => {
     fetch("/processed_students.json")
-      .then((res) => res.json())
-      .then((json) => {
+      .then(res => res.json())
+      .then(json => {
         setData(json.students);
-        if (json.students.length > 0) {
-          setSelectedStudent(json.students[0]);
-        }
+        if (json.students.length > 0) setSelectedStudent(json.students[0]);
       });
   }, []);
 
-  // Overview stats
   const overview = useMemo(() => {
     if (data.length === 0) return null;
     const total = data.length;
@@ -45,32 +43,26 @@ export default function Home() {
     return { total, avgScore, avgComprehension, avgAttention, avgFocus, avgRetention };
   }, [data]);
 
-  // Table setup using react-table
-  const columns = useMemo(() => [
-    { Header: "Name", accessor: "name" },
-    { Header: "Class", accessor: "class" },
-    { Header: "Comprehension", accessor: "comprehension" },
-    { Header: "Attention", accessor: "attention" },
-    { Header: "Focus", accessor: "focus" },
-    { Header: "Retention", accessor: "retention" },
-    { Header: "Score", accessor: "assessment_score" },
+  const columns: Column<Student>[] = useMemo(() => [
+    { Header: "Name", accessor: "name" as const },
+    { Header: "Class", accessor: "class" as const },
+    { Header: "Comprehension", accessor: "comprehension" as const },
+    { Header: "Attention", accessor: "attention" as const },
+    { Header: "Focus", accessor: "focus" as const },
+    { Header: "Retention", accessor: "retention" as const },
+    { Header: "Score", accessor: "assessment_score" as const },
   ], []);
 
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-    setGlobalFilter,
-    state
-  } = useTable({ columns, data }, useGlobalFilter, useSortBy);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tableInstance: any = useTable({ columns, data }, useGlobalFilter, useSortBy);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow, setGlobalFilter, state } = tableInstance;
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
       <h1>Student Dashboard</h1>
 
-      {/* Overview */}
       {overview && (
         <div style={{ marginBottom: "20px" }}>
           <p><strong>Total Students:</strong> {overview.total}</p>
@@ -84,7 +76,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Charts */}
       {data.length > 0 && (
         <>
           <h2>Skills vs Assessment Score</h2>
@@ -110,28 +101,17 @@ export default function Home() {
 
           <h2>Student Profile Radar Chart</h2>
           {selectedStudent && (
-            <RadarChart
-              outerRadius={100}
-              width={400}
-              height={300}
-              data={[
-                { skill: "Comprehension", value: selectedStudent.comprehension },
-                { skill: "Attention", value: selectedStudent.attention },
-                { skill: "Focus", value: selectedStudent.focus },
-                { skill: "Retention", value: selectedStudent.retention },
-                { skill: "Assessment Score", value: selectedStudent.assessment_score },
-              ]}
-            >
+            <RadarChart outerRadius={100} width={400} height={300} data={[
+              { skill: "Comprehension", value: selectedStudent.comprehension },
+              { skill: "Attention", value: selectedStudent.attention },
+              { skill: "Focus", value: selectedStudent.focus },
+              { skill: "Retention", value: selectedStudent.retention },
+              { skill: "Assessment Score", value: selectedStudent.assessment_score },
+            ]}>
               <PolarGrid />
               <PolarAngleAxis dataKey="skill" />
               <PolarRadiusAxis />
-              <Radar
-                name={selectedStudent.name}
-                dataKey="value"
-                stroke="#8884d8"
-                fill="#8884d8"
-                fillOpacity={0.6}
-              />
+              <Radar name={selectedStudent.name} dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
               <Legend />
             </RadarChart>
           )}
@@ -139,43 +119,54 @@ export default function Home() {
         </>
       )}
 
-      {/* Global Filter */}
       <input
         value={state.globalFilter || ""}
-        onChange={(e) => setGlobalFilter(e.target.value)}
+        onChange={(e) => setGlobalFilter?.(e.target.value)}
         placeholder="Search students..."
         style={{ marginBottom: "10px", padding: "5px", width: "200px" }}
       />
 
-      {/* Table */}
       <table {...getTableProps()} border={1} cellPadding={5} style={{ marginBottom: "20px", borderCollapse: "collapse" }}>
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <thead>
-          {headerGroups.map(headerGroup => (
-            <tr key={headerGroup.id} {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map(column => (
-                <th key={column.id} {...column.getHeaderProps(column.getSortByToggleProps())}>
-                  {column.render("Header")}
-                  <span>{column.isSorted ? (column.isSortedDesc ? " 🔽" : " 🔼") : ""}</span>
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody {...getTableBodyProps()}>
-          {rows.map(row => {
-            prepareRow(row);
-            return (
-              <tr key={row.id} {...row.getRowProps()} onClick={() => setSelectedStudent(row.original)} style={{ cursor: "pointer" }}>
-                {row.cells.map(cell => (
-                  <td key={cell.column.id} {...cell.getCellProps()}>{cell.render("Cell")}</td>
-                ))}
+          {headerGroups.map(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (headerGroup: any) => (
+              <tr key={headerGroup.id} {...headerGroup.getHeaderGroupProps()}>
+                {headerGroup.headers.map(
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (column: any) => (
+                    <th key={column.id} {...column.getHeaderProps(column.getSortByToggleProps())}>
+                      {column.render("Header")}
+                      <span>{column.isSorted ? (column.isSortedDesc ? " 🔽" : " 🔼") : ""}</span>
+                    </th>
+                  )
+                )}
               </tr>
-            );
-          })}
+            )
+          )}
+        </thead>
+
+        <tbody {...getTableBodyProps()}>
+          {rows.map(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (row: any) => {
+              prepareRow(row);
+              return (
+                <tr key={row.id} {...row.getRowProps()} onClick={() => setSelectedStudent(row.original)} style={{ cursor: "pointer" }}>
+                  {row.cells.map(
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (cell: any) => (
+                      <td key={cell.column.id} {...cell.getCellProps()}>{cell.render("Cell")}</td>
+                    )
+                  )}
+                </tr>
+              );
+            }
+          )}
         </tbody>
       </table>
 
-      {/* Insights Section */}
       {data.length > 0 && (
         <div>
           <h2>Key Insights</h2>
